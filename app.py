@@ -1,27 +1,35 @@
 # Import necessary libraries
 import databutton as db
 import streamlit as st
-import openai
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
+load_dotenv()
+client = OpenAI(api_key= os.environ.get("OPENAI_API_KEY"),)
 from brain import get_index_for_pdf
 from langchain.chains import RetrievalQA
 from langchain.chat_models import ChatOpenAI
+from langchain_community.vectorstores import FAISS
 import os
+
+
+openai_api_key = "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"
+OPENAI_API_KEY = "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"
 
 # Set the title for the Streamlit app
 st.title("RAG enhanced Chatbot")
 
-# Set up the OpenAI API key from databutton secrets
-os.environ["OPENAI_API_KEY"] = db.secrets.get("OPENAI_API_KEY")
-openai.api_key = db.secrets.get("OPENAI_API_KEY")
 
+# Set up the OpenAI API key from databutton secrets
+## load the GROQ And OpenAI API KEY 
 
 # Cached function to create a vectordb for the provided PDF files
-@st.cache_data
+@st.cache_resource
 def create_vectordb(files, filenames):
     # Show a spinner while creating the vectordb
     with st.spinner("Vector database"):
         vectordb = get_index_for_pdf(
-            [file.getvalue() for file in files], filenames, openai.api_key
+            [file.getvalue() for file in files], filenames, openai_api_key
         )
     return vectordb
 
@@ -32,21 +40,18 @@ pdf_files = st.file_uploader("", type="pdf", accept_multiple_files=True)
 # If PDF files are uploaded, create the vectordb and store it in the session state
 if pdf_files:
     pdf_file_names = [file.name for file in pdf_files]
-    st.session_state["vectordb"] = create_vectordb(pdf_files, pdf_file_names)
+    st.session_state["vectordb"] = create_vectordb(pdf_files, pdf_file_names,)
 
 # Define the template for the chatbot prompt
 prompt_template = """
     You are a helpful Assistant who answers to users questions based on multiple contexts given to you.
 
-    Keep your answer short and to the point.
+    Keep answer correct and to the point.
     
     The evidence are the context of the pdf extract with metadata. 
     
-    Carefully focus on the metadata specially 'filename' and 'page' whenever answering.
-    
-    Make sure to add filename and page number at the end of sentence you are citing to.
+    Only give response and do not mention source or page or filename. If user asks for it, then tell.
         
-    Reply "Not applicable" if text is irrelevant.
      
     The PDF content is:
     {pdf_extract}
@@ -95,10 +100,10 @@ if question:
     # Call ChatGPT with streaming and display the response as it comes
     response = []
     result = ""
-    for chunk in openai.ChatCompletion.create(
-        model="gpt-3.5-turbo", messages=prompt, stream=True
-    ):
-        text = chunk.choices[0].get("delta", {}).get("content")
+    for chunk in client.chat.completions.create(
+        model= "gpt-3.5-turbo", messages=prompt, stream=True, temperature= 0.7):
+        text =  chunk.choices[0].delta.content
+
         if text is not None:
             response.append(text)
             result = "".join(response).strip()
@@ -108,8 +113,8 @@ if question:
     prompt.append({"role": "assistant", "content": result})
 
     # Store the updated prompt in the session state
-    st.session_state["prompt"] = prompt
-    prompt.append({"role": "assistant", "content": result})
+    #st.session_state["prompt"] = prompt
+    #prompt.append({"role": "assistant", "content": result})
 
     # Store the updated prompt in the session state
     st.session_state["prompt"] = prompt
