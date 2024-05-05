@@ -4,13 +4,8 @@ from io import BytesIO
 from typing import Tuple, List
 import pickle
 import os
-
 from dotenv import load_dotenv
 load_dotenv()
-
-## load the GROQ And OpenAI API KEY 
-os.environ['openai_api_key']= os.getenv("openai_api_key")
-openai_api_key = "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"
 
 from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -58,7 +53,7 @@ def text_to_docs(text: List[str], filename: str) -> List[Document]:
 
 
 def docs_to_index(docs, openai_api_key):
-    index = FAISS.from_documents(docs, OpenAIEmbeddings(openai_api_key=openai_api_key))
+    index = FAISS.from_documents(docs, OpenAIEmbeddings(openai_api_key=os.environ.get("OPENAI_API_KEY")))
     return index
 
 

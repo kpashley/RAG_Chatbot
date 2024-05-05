@@ -4,3 +4,5 @@ faiss-cpu
 pypdf
 tiktoken
 streamlit
+databutton
+pysqlite3-binary

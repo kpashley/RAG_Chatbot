@@ -12,13 +12,8 @@ from langchain.chat_models import ChatOpenAI
 from langchain_community.vectorstores import FAISS
 import os
 
-
-openai_api_key = "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"
-OPENAI_API_KEY = "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"
-
 # Set the title for the Streamlit app
 st.title("RAG enhanced Chatbot")
-
 
 # Set up the OpenAI API key from databutton secrets
 ## load the GROQ And OpenAI API KEY 
@@ -29,8 +24,7 @@ def create_vectordb(files, filenames):
     # Show a spinner while creating the vectordb
     with st.spinner("Vector database"):
         vectordb = get_index_for_pdf(
-            [file.getvalue() for file in files], filenames, openai_api_key
-        )
+            [file.getvalue() for file in files], filenames, openai_api_key= os.environ.get("OPENAI_API_KEY"))
     return vectordb
 
 
@@ -40,7 +34,7 @@ pdf_files = st.file_uploader("", type="pdf", accept_multiple_files=True)
 # If PDF files are uploaded, create the vectordb and store it in the session state
 if pdf_files:
     pdf_file_names = [file.name for file in pdf_files]
-    st.session_state["vectordb"] = create_vectordb(pdf_files, pdf_file_names,)
+    st.session_state["vectordb"] = create_vectordb(pdf_files, pdf_file_names)
 
 # Define the template for the chatbot prompt
 prompt_template = """
