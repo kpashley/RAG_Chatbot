@@ -10,6 +10,7 @@ import pickle
 import os
 from dotenv import load_dotenv
 load_dotenv()
+os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 
 from langchain.docstore.document import Document
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -57,7 +58,7 @@ def text_to_docs(text: List[str], filename: str) -> List[Document]:
 
 
 def docs_to_index(docs, openai_api_key):
-    index = FAISS.from_documents(docs, OpenAIEmbeddings(openai_api_key=st.secrets("OPENAI_API_KEY")))
+    index = FAISS.from_documents(docs, OpenAIEmbeddings(openai_api_key=st.secrets["OPENAI_API_KEY"]))
     return index
 
 
