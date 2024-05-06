@@ -6,4 +6,3 @@ tiktoken
 streamlit
 databutton
 pysqlite3-binary
--U langchain-community
