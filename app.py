@@ -83,7 +83,7 @@ if question:
             st.stop()
 
     # Search the vectordb for similar content to the user's question
-    search_results = vectordb.similarity_search(question, k=3)
+    search_results = vectordb.similarity_search(question, k=5)
     # search_results
     pdf_extract = "/n ".join([result.page_content for result in search_results])
 
