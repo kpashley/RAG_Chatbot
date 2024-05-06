@@ -1,4 +1,7 @@
 import databutton as db
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 import re
 from io import BytesIO
 from typing import Tuple, List
@@ -53,7 +56,7 @@ def text_to_docs(text: List[str], filename: str) -> List[Document]:
 
 
 def docs_to_index(docs, openai_api_key):
-    index = FAISS.from_documents(docs, OpenAIEmbeddings(openai_api_key=os.environ.get("OPENAI_API_KEY")))
+    index = FAISS.from_documents(docs, OpenAIEmbeddings(openai_api_key=st.secrets("OPENAI_API_KEY")))
     return index
 
 
