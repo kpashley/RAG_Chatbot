@@ -5,6 +5,7 @@ sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 import re
 from io import BytesIO
 from typing import Tuple, List
+import streamlit as st
 import pickle
 import os
 from dotenv import load_dotenv
