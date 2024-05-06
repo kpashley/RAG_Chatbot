@@ -1,16 +1,26 @@
 # Import necessary libraries
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
+
+# Import necessary libraries
 import databutton as db
 import streamlit as st
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
+import os
+os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 load_dotenv()
-client = OpenAI(api_key= os.environ.get("OPENAI_API_KEY"),)
+client = OpenAI(api_key= st.secrets["OPENAI_API_KEY"] ,)
 from brain import get_index_for_pdf
 from langchain.chains import RetrievalQA
 from langchain.chat_models import ChatOpenAI
 from langchain_community.vectorstores import FAISS
-import os
+
+
+
 
 # Set the title for the Streamlit app
 st.title("RAG enhanced Chatbot")
@@ -24,7 +34,7 @@ def create_vectordb(files, filenames):
     # Show a spinner while creating the vectordb
     with st.spinner("Vector database"):
         vectordb = get_index_for_pdf(
-            [file.getvalue() for file in files], filenames, openai_api_key= os.environ.get("OPENAI_API_KEY"))
+            [file.getvalue() for file in files], filenames, openai_api_key= st.secrets["OPENAI_API_KEY"])
     return vectordb
 
 
@@ -40,13 +50,14 @@ if pdf_files:
 prompt_template = """
     You are a helpful Assistant who answers to users questions based on multiple contexts given to you.
 
-    Keep answer correct and to the point.
+    Keep answer correct and to the point. Try to answer from context first.
+
+    If the answer is not in the context, answer should be 'this is most likely not given in the context, modify the question may be?'
     
     The evidence are the context of the pdf extract with metadata. 
     
     Only give response and do not mention source or page or filename. If user asks for it, then tell.
         
-     
     The PDF content is:
     {pdf_extract}
 """
@@ -95,7 +106,7 @@ if question:
     response = []
     result = ""
     for chunk in client.chat.completions.create(
-        model= "gpt-3.5-turbo", messages=prompt, stream=True, temperature= 0.7):
+        model= "gpt-3.5-turbo", messages=prompt, stream=True, temperature= 0.6):
         text =  chunk.choices[0].delta.content
 
         if text is not None:
